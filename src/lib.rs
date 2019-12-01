@@ -228,5 +228,40 @@ extern {
 
 #[link(name = "rusturing")]
 extern {
-    pub fn rust_io_uring_cq_advance(ring: *mut io_uring, nr: libc::c_uint);
+
+    #[link_name = "rust_io_uring_cq_advance"]
+    pub fn io_uring_cq_advance(ring: *mut io_uring, nr: libc::c_uint);
+
+    #[link_name = "rust_io_uring_prep_rw"]
+    pub fn io_uring_prep_rw(op: libc::c_int, sqe: *mut io_uring_sqe, fd: libc::c_int, addr: *mut libc::c_void, len: libc::c_uint, offset: libc::__u64);
+
+    #[link_name = "rust_io_uring_prep_readv"]
+    pub fn io_uring_prep_readv(sqe: *mut io_uring_sqe, fd: libc::c_int, iovecs: *const libc::iovec, nr_vecs: libc::c_uint, offset: libc::__u64);
+
+    #[link_name = "rust_io_uring_prep_read_fixed"]
+    pub fn io_uring_prep_read_fixed(sqe: *mut io_uring_sqe, fd: libc::c_int, buf: *mut libc::c_void, nbytes: libc::c_uint, offset: libc::__u64, buf_index: libc::c_int);
+
+    #[link_name = "rust_io_uring_prep_writev"]
+    pub fn io_uring_prep_writev(sqe: *mut io_uring_sqe, fd: libc::c_int, iovecs: *const libc::iovec, nr_vecs: libc::c_uint, offset: libc::__u64);
+
+    #[link_name = "rust_io_uring_prep_write_fixed"]
+    pub fn io_uring_prep_write_fixed(sqe: *mut io_uring_sqe, fd: libc::c_int, buf: *const libc::c_void, nbytes: libc::c_uint, offset: libc::__u64, buf_index: libc::c_int);
+
+    #[link_name = "rust_io_uring_prep_fsync"]
+    pub fn io_uring_prep_fsync(sqe: *mut io_uring_sqe, fd: libc::c_int, fsync_flags: libc::c_uint);
+
+    #[link_name = "rust_io_uring_prep_nop"]
+    pub fn io_uring_prep_nop(sqe: *mut io_uring_sqe);
+
+    #[link_name = "rust_io_uring_prep_poll_add"]
+    pub fn io_uring_prep_poll_add(sqe: *mut io_uring_sqe, fd: libc::c_int, poll_mask: libc::c_short);
+
+    #[link_name = "rust_io_uring_prep_poll_remove"]
+    pub fn io_uring_prep_poll_remove(sqe: *mut io_uring_sqe, user_data: *const libc::c_void);
+
+    #[link_name = "rust_io_uring_prep_timeout"]
+    pub fn io_uring_prep_timeout(sqe: *mut io_uring_sqe, ts: *const __kernel_timespec, count: libc::c_uint, flags: libc::c_uint);
+
+    #[link_name = "rust_io_uring_prep_timeout_remove"]
+    pub fn io_uring_prep_timeout_remove(sqe: *mut io_uring_sqe, user_data: libc::__u64, flags: libc::c_uint);
 }
