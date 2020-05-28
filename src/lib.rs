@@ -210,7 +210,8 @@ pub struct io_uring_params {
     pub sq_thread_cpu: libc::__u32,
     pub sq_thread_idle: libc::__u32,
     pub features: libc::__u32,
-    pub resv: [libc::__u32; 4],
+    pub wq_fd: libc::__u32,
+    pub resv: [libc::__u32; 3],
     pub sq_off: io_sqring_offsets,
     pub cq_off: io_cqring_offsets,
 }
