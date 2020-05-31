@@ -1,4 +1,5 @@
 #include "liburing.h"
+#include "queue.c"
 
 extern inline int rust_io_uring_opcode_supported(struct io_uring_probe *p, int op)
 {
@@ -301,4 +302,14 @@ extern inline int rust_io_uring_peek_cqe(struct io_uring *ring, struct io_uring_
 extern inline int rust_io_uring_wait_cqe(struct io_uring *ring, struct io_uring_cqe **cqe_ptr)
 {
     return io_uring_wait_cqe(ring, cqe_ptr);
+}
+
+extern inline int rust_io_uring_flush_sq(struct io_uring *ring)
+{
+    return __io_uring_flush_sq(ring);
+}
+
+extern inline int rust_io_uring_submit_raw(struct io_uring *ring)
+{
+    return __io_uring_submit_and_wait(ring, 0);
 }

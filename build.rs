@@ -27,6 +27,7 @@ fn main() {
     // (our additional, linkable C bindings)
     Build::new().file(project.join("rusturing.c"))
                 .include(src.join("include"))
+                .include(src)
                 .include(&configured_include)
                 .compile("rusturing");
 }
