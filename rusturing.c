@@ -1,5 +1,20 @@
 #include "liburing.h"
-#include "queue.c"
+#include <stdbool.h>
+#include "syscall.h"
+#include <errno.h>
+
+static inline bool rust_sq_ring_needs_enter(struct io_uring *ring,
+                                            unsigned submitted, unsigned *flags)
+{
+    if (!(ring->flags & IORING_SETUP_SQPOLL) && submitted)
+        return true;
+    if (IO_URING_READ_ONCE(*ring->sq.kflags) & IORING_SQ_NEED_WAKEUP) {
+        *flags |= IORING_ENTER_SQ_WAKEUP;
+        return true;
+    }
+
+    return false;
+}
 
 extern inline int rust_io_uring_opcode_supported(struct io_uring_probe *p, int op)
 {
@@ -306,10 +321,53 @@ extern inline int rust_io_uring_wait_cqe(struct io_uring *ring, struct io_uring_
 
 extern inline int rust_io_uring_flush_sq(struct io_uring *ring)
 {
-    return __io_uring_flush_sq(ring);
+    struct io_uring_sq *sq = &ring->sq;
+    const unsigned mask = *sq->kring_mask;
+    unsigned ktail, to_submit;
+
+    if (sq->sqe_head == sq->sqe_tail) {
+        ktail = *sq->ktail;
+        goto out;
+    }
+
+    /*
+     * Fill in sqes that we have queued up, adding them to the kernel ring
+     */
+    ktail = *sq->ktail;
+    to_submit = sq->sqe_tail - sq->sqe_head;
+    while (to_submit--) {
+        sq->array[ktail & mask] = sq->sqe_head & mask;
+        ktail++;
+        sq->sqe_head++;
+    }
+
+    /*
+     * Ensure that the kernel sees the SQE updates before it sees the tail
+     * update.
+     */
+    io_uring_smp_store_release(sq->ktail, ktail);
+    out:
+    return ktail - *sq->khead;
 }
 
 extern inline int rust_io_uring_submit_raw(struct io_uring *ring)
 {
-    return __io_uring_submit_and_wait(ring, 0);
+    unsigned flags;
+    int ret;
+    int submitted = rust_io_uring_flush_sq(ring);
+    flags = 0;
+    if (rust_sq_ring_needs_enter(ring, submitted, &flags)) {
+        if (ring->flags & IORING_SETUP_IOPOLL)
+            flags |= IORING_ENTER_GETEVENTS;
+
+        ret = __sys_io_uring_enter(ring->ring_fd, submitted, 0,
+                                   flags, NULL);
+        if (ret < 0)
+            return -errno;
+    } else
+        ret = submitted;
+
+    return ret;
 }
+
+
