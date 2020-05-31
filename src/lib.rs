@@ -661,8 +661,8 @@ extern {
     pub fn io_uring_wait_cqe(ring: *mut io_uring, cqe_ptr: *mut *mut io_uring_cqe) -> libc::c_int;
 
     #[link_name = "rust_io_uring_flush_sq"]
-    pub fn io_uring_flush_sq(ring: *mut io_uring) -> libc::c_int;
+    pub fn rust_io_uring_flush_sq(ring: *mut io_uring) -> libc::c_int;
 
     #[link_name = "rust_io_uring_submit_raw"]
-    pub fn io_uring_submit_raw(ring: *mut io_uring, submitted: libc::c_uint, wait_nr: libc::c_uint) -> libc::c_int;
+    pub fn rust_io_uring_submit_raw(ring: *mut io_uring, submitted: libc::c_uint, wait_nr: libc::c_uint) -> libc::c_int;
 }
